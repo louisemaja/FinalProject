@@ -1,7 +1,7 @@
 ---
 title: "WorldHappinessFinalProject"
 author: "Louise Maja Andersen"
-date: "08/01/2020"
+date: "29/12/2020"
 output: html_document
 ---
 
@@ -19,7 +19,8 @@ When you click the **Knit** button a document will be generated that includes bo
 
 This is my final project for the course "Teoriorienteret metode Spor 2 Del 2 - Digital Methods for Historians". I will be using a dataset exploring the World Happiness Report from 2015 to 2019.
 
-The data for this project can be found on the following website: https://www.kaggle.com/mathurinache/world-happiness-report
+The data for this project can be found on the following website: https://www.kaggle.com/mathurinache/world-happiness-report, which cites:
+-	Helliwell, John F., Richard Layard, Jeffrey Sachs, and Jan-Emmanuel De Neve, eds. 2020. World Happiness Report 2020. New York: Sustainable Development Solutions Network
 
 First, I need to make it easier for myself to organise my project by making a working directory in R. This will include my data-folder and other useful folders.
 
@@ -37,7 +38,7 @@ I will now load the tidyverse package as we used this in class. Later, I might f
 library(tidyverse)
 ```
 
-Now I will "load the data into R's memory" (to quote the datacarpentry instruction).
+Now I will "load the data into R's memory" (to quote the datacarpentry R for Social Scientists introduction).
 
 ```{r}
 "year2015" <- read_csv("data/2015.csv", na="NULL")
@@ -47,7 +48,7 @@ Now I will "load the data into R's memory" (to quote the datacarpentry instructi
 "year2019" <- read_csv("data/2019.csv", na="NULL")
 ```
 
-All 5 datasets don't have the same values, so I have looked through them and will only select the reoccuring values to work with. This leaves me with the Country and 8 other values.To make sure that I select the correct variables, I first use "names()" to see the variables names and then I define my dataframes.
+All 5 datasets don't have the same values, so I have looked through them and will only select the reoccurring values to work with. This leaves me with the Country and 8 other values.To make sure that I select the correct variables, I first use "names()" to see the variables names and then I define my dataframes.
 
 ```{r}
 
@@ -376,7 +377,3 @@ The output is:
 [1] 0.247409 = GDP_Per_Capita
 
 This shows that GDP_Per_Capita has the biggest difference between the countries with the highest Happiness Scores and the remaining. Generosity seems to have less of a difference between the countries. 
-
-
-
-
