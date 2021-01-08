@@ -1,0 +1,382 @@
+---
+title: "WorldHappinessFinalProject"
+author: "Louise Maja Andersen"
+date: "08/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
+
+##################################
+
+This is my final project for the course "Teoriorienteret metode Spor 2 Del 2 - Digital Methods for Historians". I will be using a dataset exploring the World Happiness Report from 2015 to 2019.
+
+The data for this project can be found on the following website: https://www.kaggle.com/mathurinache/world-happiness-report
+
+First, I need to make it easier for myself to organise my project by making a working directory in R. This will include my data-folder and other useful folders.
+
+```{r}
+dir.create("data")
+dir.create("data_output")
+dir.create("fig_output")
+```
+
+I then simply copy the files from a folder on my computer and paste them in the data-folder of my project. Now I see the 5 csv-files in the data-folder in R.
+
+I will now load the tidyverse package as we used this in class. Later, I might find that I need to install more packages/libraries to achieve what I want to do with my project. Then I will search for the appropriate library and install that.
+
+```{r}
+library(tidyverse)
+```
+
+Now I will "load the data into R's memory" (to quote the datacarpentry instruction).
+
+```{r}
+"year2015" <- read_csv("data/2015.csv", na="NULL")
+"year2016" <- read_csv("data/2016.csv", na="NULL")
+"year2017" <- read_csv("data/2017.csv", na="NULL")
+"year2018" <- read_csv("data/2018.csv", na="NULL")
+"year2019" <- read_csv("data/2019.csv", na="NULL")
+```
+
+All 5 datasets don't have the same values, so I have looked through them and will only select the reoccuring values to work with. This leaves me with the Country and 8 other values.To make sure that I select the correct variables, I first use "names()" to see the variables names and then I define my dataframes.
+
+```{r}
+
+names(year2015)
+v2015 <- year2015 %>% select("Country","Happiness Rank","Happiness Score","Economy (GDP per Capita)","Family","Health (Life Expectancy)","Freedom","Trust (Government Corruption)","Generosity")
+```
+```{r}
+names(year2016)
+v2016 <- year2016 %>% select("Country","Happiness Rank","Happiness Score","Economy (GDP per Capita)","Family","Health (Life Expectancy)","Freedom","Trust (Government Corruption)","Generosity")
+```
+
+```{r}
+names(year2017)
+v2017 <- year2017 %>% select("Country","Happiness.Rank","Happiness.Score","Economy..GDP.per.Capita.","Family","Health..Life.Expectancy.","Freedom","Trust..Government.Corruption.","Generosity")
+ 
+```
+
+```{r}
+names(year2018)
+v2018 <- year2018 %>% select("Country or region","Overall rank","Score","GDP per capita","Social support","Healthy life expectancy","Freedom to make life choices","Perceptions of corruption","Generosity")
+```
+
+```{r}
+names(year2019)
+v2019 <- year2019 %>% select("Country or region","Overall rank","Score","GDP per capita","Social support","Healthy life expectancy","Freedom to make life choices","Perceptions of corruption","Generosity")
+```
+
+When I was going through the datasets I found that the columnnames for the same values aren't the same across the datasets. E.g. "Happiness Rank" from the 2015 and 2016 datasets is called "Happiness.Rank" in the 2017 dataset and "Overall rank" in 2018 and 2019. I will therefore have to rename the columns so that they match for all 5 years' worth of data.
+
+I want the values to be called:
+- Country
+- Happiness_Rank
+- Happiness_Score
+- GDP_Per_Capita
+- Social_Support
+- Health_Life_Expectancy
+- Freedom_Life_Choices
+- Perceptions_Of_Corruption
+- Generosity
+
+```{r}
+
+Y2015 <- v2015 %>% rename("Happiness_Rank" = "Happiness Rank","Happiness_Score" = "Happiness Score","GDP_Per_Capita" = "Economy (GDP per Capita)","Social_Support" = "Family","Health_Life_Expectancy" = "Health (Life Expectancy)","Freedom_Life_Choices" = "Freedom","Perceptions_Of_Corruption" = "Trust (Government Corruption)")
+  
+Y2016 <- v2016 %>% rename("Happiness_Rank" = "Happiness Rank","Happiness_Score" = "Happiness Score","GDP_Per_Capita" = "Economy (GDP per Capita)","Social_Support" = "Family","Health_Life_Expectancy" = "Health (Life Expectancy)","Freedom_Life_Choices" = "Freedom","Perceptions_Of_Corruption" = "Trust (Government Corruption)")
+
+Y2017 <- v2017 %>% rename("Happiness_Rank" = "Happiness.Rank","Happiness_Score" = "Happiness.Score","GDP_Per_Capita" = "Economy..GDP.per.Capita.","Social_Support" = "Family","Health_Life_Expectancy" = "Health..Life.Expectancy.","Freedom_Life_Choices" = "Freedom","Perceptions_Of_Corruption" = "Trust..Government.Corruption.")
+
+Y2018 <- v2018 %>% rename("Country" = "Country or region", "Happiness_Rank" = "Overall rank","Happiness_Score" = "Score","GDP_Per_Capita" = "GDP per capita","Social_Support" = "Social support","Health_Life_Expectancy" = "Healthy life expectancy","Freedom_Life_Choices" = "Freedom to make life choices","Perceptions_Of_Corruption" = "Perceptions of corruption")
+
+Y2019 <- v2019 %>% rename("Country" = "Country or region", "Happiness_Rank" = "Overall rank","Happiness_Score" = "Score","GDP_Per_Capita" = "GDP per capita","Social_Support" = "Social support","Health_Life_Expectancy" = "Healthy life expectancy","Freedom_Life_Choices" = "Freedom to make life choices","Perceptions_Of_Corruption" = "Perceptions of corruption")
+
+```
+
+Now I have my 9 variables within the dataframes Y2015-Y2019. First of all I would like to create a visualization of the development of the Happiness Rank throughout the years.
+
+The x axis should be the years
+The y axis should be the rankings
+
+I first need to create a single dataframe with the values. When I try to create a dataframe with the 5 datasets combined, I get an error-message that there are a different amount of rows in the datasets. I therefore create new dataframes with only the top 10 countries for each year. (I first tried top 50 - and then top 25 - but ended up changing it because the ggplot was a bit overwhelming and the visualisation works better with only 10 observations.
+
+I then added a variable to each dataset with the year so that I can use that as my x-asis when making a ggplot
+
+I then combined them all in one dataframe called "top10"
+
+```{r}
+
+Y10_2015 <- head(Y2015,n=10)
+Y10_2016 <- head(Y2016,n=10)
+Y10_2017 <- head(Y2017,n=10)
+Y10_2018 <- head(Y2018,n=10)
+Y10_2019 <- head(Y2019,n=10)
+
+Y10_2015$Year <- 2015
+Y10_2016$Year <- 2016
+Y10_2017$Year <- 2017
+Y10_2018$Year <- 2018
+Y10_2019$Year <- 2019
+
+top10 <- rbind(Y10_2015,Y10_2016,Y10_2017,Y10_2018,Y10_2019)
+
+```
+
+
+I will now create my ggplot and first of all illustrate the different countries by color
+I added a title and renamed the y-axis
+I then found a way to make the y-axis more logical to read in this example. The country with the highest Happiness Rank is now the top one and the ranking follows the y-axis downwards. I think this makes more sense than the top country being at the bottom. I also found a code helping me get each number on the y-axis where R had automated it to be 0, 2.5, 5. 7.5 and 10. This help was found at: https://stackoverflow.com/questions/58543596/is-there-a-ggplot2-form-to-reverse-only-one-axis-geom-bar-when-i-plot-two and https://stackoverflow.com/questions/11335836/increase-number-of-axis-ticks 
+
+
+```{r plot#1}
+
+top10 %>% 
+  ggplot(aes(x=Year,y=Happiness_Rank))+
+  geom_line(aes(color=Country))+
+  labs(title="The Development of the Happiness Ranks 2015-2019",y="Happiness Rank")+
+  scale_y_reverse(breaks = scales::pretty_breaks(n = 10))
+
+
+```
+
+The data for Australia is missing for 2019. I looked at the dataset for that year and it turns out that it's because Australia ranked 11 that year. When I created the dataframe "top10" that meant that Australia didn't get its data for 2019. Otherwise the top 10 happiest countries have stayed consistent throughout the 5 years.
+
+Switzerland has been continually dropping in ranks while for instance Finland has moved up from 6 to 1.
+
+
+I would like to try to animate this result.
+
+First, I need to install libraries and packages
+
+```{r}
+library(gapminder)
+library(gganimate)
+library("gifski")
+library("png")
+```
+
+I then make my ggplot, illustrating the development with the countries names moving along the x-axis. For this I was inspired by Robbie Bonellis guide on transition_time and transition_reveal: https://github.com/ropenscilabs/learngganimate/blob/master/transition_time_vs_transition_reveal.md
+
+
+```{r plot#2}
+top10 %>% 
+  ggplot(aes(x=Year,y=Happiness_Rank,group=Country))+
+  geom_label(aes(label=Country,color=as.factor(Country)))+
+  labs(title="The Development of the Happiness Ranks 2015-2019",y="Happiness Rank")+
+  scale_y_reverse(breaks = scales::pretty_breaks(n = 10))+
+  transition_time(time=Year)
+  
+```
+It worked!
+
+I would now like to try to create a plot showing the Happiness Score comparing it to other variables.
+
+I want to expand my dataframe so that it's the top 100 countries and do the same as before:
+
+```{r}
+
+Y100_2015 <- head(Y2015,n=100)
+Y100_2016 <- head(Y2016,n=100)
+Y100_2017 <- head(Y2017,n=100)
+Y100_2018 <- head(Y2018,n=100)
+Y100_2019 <- head(Y2019,n=100)
+
+Y100_2015$Year <- 2015
+Y100_2016$Year <- 2016
+Y100_2017$Year <- 2017
+Y100_2018$Year <- 2018
+Y100_2019$Year <- 2019
+
+top100 <- rbind(Y100_2015,Y100_2016,Y100_2017,Y100_2018,Y100_2019)
+
+```
+
+I am making a plot comparing the Happiness Score and the GDP per Capita.
+
+```{r plot#3}
+
+ggplot(top100, aes(x=GDP_Per_Capita,y=Happiness_Score))+
+  geom_jitter(aes(color=as.factor(Year)))+
+  labs(title="The Effect of the GDP per Capita on the Happiness Score",y="Happiness Score",color="Year")+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))
+
+```
+
+It is shown that the countries that are high on the Happiness Score have a high GDP per Capita as well. I would like to see if they're above average:
+
+```{r}
+GDP_Per_Capita <- top100$GDP_Per_Capita
+
+mean(GDP_Per_Capita)
+
+```
+The output is 1.121916 which is the average GDP per Capita within the top 100 countries. To see more accurately what is above average on the plot, I added "scale_x_continuous". I thereby see that most countries that have a Happiness Score above 7 also have a GDP per Capita above average. It is however also interesting to note, that the richest countries aren't the happiest.
+
+I now want to animate this result, again choosing to illustrate with the top10 countries. 
+
+
+```{r plot#4}
+
+ggplot(top10, aes(x=GDP_Per_Capita,y=Happiness_Score,color=as.factor(Country)))+
+  geom_jitter() +
+  labs(title="The Effect of the GDP per Capita on the Happiness Score",subtitle="Year: {closest_state}",y="Happiness Score",x="GDP per Capita", color="Country")+
+  geom_label(aes(label=Country))+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))+
+  theme_bw()+
+  transition_states(Year,transition_length = 4,state_length = 4)
+
+```
+
+The y-axis shows that all top 10 countries have a GDP above average. Comparing this plot to plot#4 however, it also becomes clear that the happiest countries aren't also the richest as some countries on plot#3 has a higher GDP per Capita than the top 10 happiest countries. 
+
+Now I want to make a similar plot to plot#3, but with Social Support instead of GFP per Capita
+
+```{r plot#5}
+
+ggplot(top100, aes(x=Social_Support,y=Happiness_Score))+
+  geom_jitter(aes(color=as.factor(Year)))+
+  labs(title="The Effect of Social Support on the Happiness Score",x="Social Support",y="Happiness Score",color="Year")+
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10))
+
+```
+
+It is clear to see that the level of social support has risen through the years. The Happiness Score and the Social support doesn't offer much of a correlation compared to the GDP per Capita - not one as big at least.
+
+I would now like to compare on a more overall level, the development of the Happiness Scores over time
+
+```{r plot#6}
+ggplot(top100, aes(x=Year,y=Happiness_Score))+
+  geom_jitter(aes(color=as.factor(Year)))+
+  labs(title="The Happiness Score Development Throughout the Years",y="Happiness Score",color="Year")
+```
+
+Looking at plot#6 it seems that the Happiness Scores are most concentrated between 5 and 6. Now what do the countries with a Happiness Score above 7 have in common?
+
+
+First of all, I can figure out how many countries have a Happiness Score of 7 or above. I first make a vector of the top 100 Happiness Scores. I then find amount of Scores at or above 7
+
+```{r}
+
+Happiness_Score <- top100$Happiness_Score
+
+length(Happiness_Score[Happiness_Score == 7 | Happiness_Score > 7])
+
+```
+
+The output shows that there are 72 occurrences with this Happiness Score throughout the years. I therefore make a new dataframe with only these to continue working with them. 
+
+```{r}
+
+Top_Happiness_Score <- top100 %>% filter(Happiness_Score > "7")
+
+view(Top_Happiness_Score)
+
+```
+
+By now having isolated the places where countries has obtained a Score of more than 7, we can simply compare the 6 factors affecting the Happiness Score. I will do that by finding the average of the top100 dataframe and the average of the Top_Happiness_Score (the countries with a Happiness Score above 7). To do this I create a vector for each value and then I find the averages by simply subtracting the numbers.
+
+```{r}
+
+Social_Support <- top100$Social_Support
+Health_Life_Expectancy <- top100$Health_Life_Expectancy
+Freedom_Life_Choices <-top100$Freedom_Life_Choices
+Perceptions_Of_Corruption <- top100$Perceptions_Of_Corruption
+Generosity <- top100$Generosity
+GDP_Per_Capita <- top100$GDP_Per_Capita
+
+top_Social_Support <- Top_Happiness_Score$Social_Support
+top_Health_Life_Expectancy <- Top_Happiness_Score$Health_Life_Expectancy
+top_Freedom_Life_Choices <-Top_Happiness_Score$Freedom_Life_Choices
+top_Perceptions_Of_Corruption <- Top_Happiness_Score$Perceptions_Of_Corruption
+top_Generosity <- Top_Happiness_Score$Generosity
+top_GDP_Per_Capita <- Top_Happiness_Score$GDP_Per_Capita
+
+```
+
+```{r}
+
+mean(Social_Support)
+mean(top_Social_Support)
+
+mean(Health_Life_Expectancy)
+mean(top_Health_Life_Expectancy)
+
+mean(Freedom_Life_Choices)
+mean(top_Freedom_Life_Choices)
+
+mean(Perceptions_Of_Corruption)
+mean(top_Perceptions_Of_Corruption)
+
+mean(Generosity)
+mean(top_Generosity)
+
+mean(GDP_Per_Capita)
+mean(top_GDP_Per_Capita)
+
+```
+
+Trying to find the average from Perceptions_Of_Corruption and top_Perceptions_Of_Corruption, R lets me know that this isn't numerical or logical. By using "view()" I see that there's an N/A present. I therefore want to delete the N/A and try again. (seen below)
+
+
+```{r}
+view(Perceptions_Of_Corruption)
+
+#na.omit(Perceptions_Of_Corruption)
+
+#mean(Perceptions_Of_Corruption, na.rm = FALSE)
+
+#mean(Perceptions_Of_Corruption[!is.na()])
+
+Perceptions_Of_Corruption <- Perceptions_Of_Corruption[-320]
+top_Perceptions_Of_Corruption <- top_Perceptions_Of_Corruption[-320]
+
+
+mean(Perceptions_Of_Corruption)
+mean(top_Perceptions_Of_Corruption)
+
+```
+I tried both na.omit and na.rm=FALSE but couldn't get either to work. I then looked at the data (with view()), searched for the N/A and learned that it was in row 320. I then removed that row. This also let me know that the argument wasn't numerical or logical. I don't really know what to do now.
+
+I have decided to let Perceptions_Of_Corruption be for now and continue on with the other factors. This should still give me an overview.
+
+
+```{r}
+
+#The average number from occurrences with a Happiness Score above 7 - the average of the top 100 countries
+#Social_Support
+1.383726-1.217842 
+
+#Health_Life_Expectancy
+0.8896058-0.7365124 
+
+#Freedom_Life_Choices
+0.5854883-0.4564859
+
+#Generosity
+0.3295572-0.2206859
+
+#GDP_Per_Capita
+1.369325-1.121916
+```
+
+The output is:
+[1] 0.165884 = Social_Support
+[1] 0.1530934 = Health_Life_Expectancy
+[1] 0.1290024 = Freedom_Life_Choices
+[1] 0.1088713 = Generosity
+[1] 0.247409 = GDP_Per_Capita
+
+This shows that GDP_Per_Capita has the biggest difference between the countries with the highest Happiness Scores and the remaining. Generosity seems to have less of a difference between the countries. 
+
+
+
+
